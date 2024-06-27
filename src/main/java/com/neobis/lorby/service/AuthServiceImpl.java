@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
         boolean usernameExists = userRepository.existsByUsername(registerRequestDto.getUsername());
-        if (!usernameExists) {
+        if (usernameExists) {
             throw new ResourceExistsException(
                     "User with username " + registerRequestDto.getUsername() + " already exists.");
         }
