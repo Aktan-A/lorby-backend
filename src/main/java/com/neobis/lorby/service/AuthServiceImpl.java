@@ -5,6 +5,7 @@ import com.neobis.lorby.dto.LoginResponseDto;
 import com.neobis.lorby.dto.RegisterRequestDto;
 import com.neobis.lorby.dto.RegisterResponseDto;
 import com.neobis.lorby.enums.UserRole;
+import com.neobis.lorby.exception.InvalidRequestException;
 import com.neobis.lorby.exception.ResourceExistsException;
 import com.neobis.lorby.exception.ResourceNotFoundException;
 import com.neobis.lorby.model.User;
@@ -35,6 +36,9 @@ public class AuthServiceImpl implements AuthService {
                     "User with username " + registerRequestDto.getUsername() + " already exists.");
         }
 
+        validateUsername(registerRequestDto.getUsername());
+        validatePassword(registerRequestDto.getPassword());
+
         User user = new User();
         user.setUsername(registerRequestDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequestDto.getPassword()));
@@ -62,5 +66,61 @@ public class AuthServiceImpl implements AuthService {
         User userModel = user.get();
         String accessToken = jwtService.generateToken(userModel);
         return LoginResponseDto.builder().accessToken(accessToken).build();
+    }
+
+    @Override
+    public void validateUsername(String username) {
+        for (int i = 0; i < username.length(); i++) {
+            char value = username.charAt(i);
+            if (!Character.isLetter(value)) {
+                throw new InvalidRequestException("Username can only consist of uppercase and lowercase letters.");
+            }
+        }
+    }
+
+    @Override
+    public void validatePassword(String password) {
+        if (password.length() < 8) {
+            throw new InvalidRequestException("Password is too short. Must be at least 8 characters.");
+        }
+        if (password.length() > 15) {
+            throw new InvalidRequestException("Password is too long. Must be less than 15 characters.");
+        }
+
+        boolean containsUppercase = false;
+        boolean containsLowercase = false;
+        boolean containsNumber = false;
+        boolean containsSpecialCharacter = false;
+        for (int i = 0; i < password.length(); i++) {
+            char value = password.charAt(i);
+
+            if (!containsUppercase && Character.isUpperCase(value)) {
+                containsUppercase = true;
+            } else if (!containsLowercase && Character.isLowerCase(value)) {
+                containsLowercase = true;
+            } else if (!containsNumber && Character.isDigit(value)) {
+                containsNumber = true;
+            } else if (!containsSpecialCharacter && !Character.isLetterOrDigit(value)) {
+                containsSpecialCharacter = true;
+            }
+
+        }
+
+        if (!containsUppercase) {
+            throw new InvalidRequestException("Password must contain an uppercase letter.");
+        }
+
+        if (!containsLowercase) {
+            throw new InvalidRequestException("Password must contain a lowercase letter.");
+        }
+
+        if (!containsNumber) {
+            throw new InvalidRequestException("Password must contain a number.");
+        }
+
+        if (!containsSpecialCharacter) {
+            throw new InvalidRequestException("Password must contain a special character.");
+        }
+
     }
 }

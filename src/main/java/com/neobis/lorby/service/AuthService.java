@@ -10,4 +10,8 @@ public interface AuthService {
     RegisterResponseDto register(RegisterRequestDto registerRequestDto);
 
     LoginResponseDto login(LoginRequestDto loginRequestDto);
+
+    void validateUsername(String username);
+
+    void validatePassword(String password);
 }
