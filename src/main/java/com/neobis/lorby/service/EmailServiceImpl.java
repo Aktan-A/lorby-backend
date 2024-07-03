@@ -1,5 +1,6 @@
 package com.neobis.lorby.service;
 
+import com.neobis.lorby.exception.InvalidRequestException;
 import com.neobis.lorby.exception.ResourceNotFoundException;
 import com.neobis.lorby.model.EmailConfirmationToken;
 import com.neobis.lorby.model.User;
@@ -41,6 +42,11 @@ public class EmailServiceImpl implements EmailService {
         }
 
         EmailConfirmationToken emailToken = emailConfirmationToken.get();
+
+        if (emailToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new InvalidRequestException("Email confirmation token has expired.");
+        }
+
         emailToken.setConfirmedAt(LocalDateTime.now());
         emailConfirmationTokenRepository.save(emailToken);
 
