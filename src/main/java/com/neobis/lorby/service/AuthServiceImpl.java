@@ -8,6 +8,7 @@ import com.neobis.lorby.enums.UserRole;
 import com.neobis.lorby.exception.InvalidRequestException;
 import com.neobis.lorby.exception.ResourceExistsException;
 import com.neobis.lorby.exception.ResourceNotFoundException;
+import com.neobis.lorby.model.EmailConfirmationToken;
 import com.neobis.lorby.model.User;
 import com.neobis.lorby.repository.UserRepository;
 import com.neobis.lorby.security.JwtService;
@@ -17,7 +18,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     @Override
     public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
@@ -45,6 +49,17 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(registerRequestDto.getEmail());
         user.setRole(UserRole.USER_ROLE);
         userRepository.save(user);
+
+        String token = UUID.randomUUID().toString();
+        EmailConfirmationToken confirmationToken = emailService.saveConfirmationToken(
+                new EmailConfirmationToken(
+                        token,
+                        LocalDateTime.now().plusMinutes(15),
+                        user
+                )
+        );
+        emailService.send(registerRequestDto.getEmail(), confirmationToken.getToken());
+
         String accessToken = jwtService.generateToken(user);
         return RegisterResponseDto.builder().accessToken(accessToken).build();
     }
@@ -64,6 +79,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User userModel = user.get();
+
+        if (!userModel.getVerified()) {
+            throw new ResourceNotFoundException("User did not verify their email.");
+        }
+
         String accessToken = jwtService.generateToken(userModel);
         return LoginResponseDto.builder().accessToken(accessToken).build();
     }

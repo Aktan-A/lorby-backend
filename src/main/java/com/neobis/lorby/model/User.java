@@ -35,11 +35,22 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean verified;
+
     public User(String username, String password, String email, UserRole role) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.role = role;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        super.onCreate();
+        if (verified == null) {
+            verified = false;
+        }
     }
 
     @Override

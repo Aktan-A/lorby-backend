@@ -18,6 +18,7 @@ public class UserDto {
     private String password;
     private String email;
     private UserRole role;
+    private Boolean verified;
     private Boolean deleted;
     private LocalDateTime createdAt;
 }
