@@ -27,7 +27,7 @@ public class EmailConfirmationToken extends BaseEntity {
     private LocalDateTime confirmedAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public EmailConfirmationToken(String token, LocalDateTime expiresAt, User user) {

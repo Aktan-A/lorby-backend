@@ -14,8 +14,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,9 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${application.base-url}")
     private String baseUrl;
+
+    @Value("${application.confirm-email-daily-limit}")
+    private Integer confirmEmailDailyLimit;
 
     @Override
     public EmailConfirmationToken saveConfirmationToken(EmailConfirmationToken emailConfirmationToken) {
@@ -65,5 +71,42 @@ public class EmailServiceImpl implements EmailService {
         String text = "Please confirm your email using the following link:\n" + confirmationLink;
         message.setText(text);
         mailSender.send(message);
+    }
+
+    @Override
+    public void resendConfirmationEmail(String email, String username) {
+        int tokenCount = emailConfirmationTokenRepository.countTokensByEmailBetweenDates(
+                LocalDate.now().atTime(LocalTime.MIN),
+                LocalDate.now().atTime(LocalTime.MAX),
+                email
+        );
+
+        if (tokenCount >= confirmEmailDailyLimit) {
+            throw new InvalidRequestException(
+                    String.format("Email verification limit for the email %s has been reached.", email));
+        }
+
+        Optional<User> user = userRepository.findByUsername(username);
+
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    String.format("User with username %s was not found.", username));
+        }
+
+        User userModel = user.get();
+
+        if (userModel.getVerified()) {
+            throw new InvalidRequestException("User has already verified their email.");
+        }
+
+        String token = UUID.randomUUID().toString();
+        EmailConfirmationToken confirmationToken = saveConfirmationToken(
+                new EmailConfirmationToken(
+                        token,
+                        LocalDateTime.now().plusMinutes(15),
+                        userModel
+                )
+        );
+        send(email, confirmationToken.getToken());
     }
 }
