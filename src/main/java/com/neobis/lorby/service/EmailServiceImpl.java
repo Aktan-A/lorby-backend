@@ -34,6 +34,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${application.confirm-email-daily-limit}")
     private Integer confirmEmailDailyLimit;
 
+    @Value("${application.confirm-email-resend-delay-minutes}")
+    private Integer confirmEmailResendDelayMinutes;
+
     @Override
     public EmailConfirmationToken saveConfirmationToken(EmailConfirmationToken emailConfirmationToken) {
         return emailConfirmationTokenRepository.save(emailConfirmationToken);
@@ -75,7 +78,19 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void resendConfirmationEmail(String email, String username) {
-        int tokenCount = emailConfirmationTokenRepository.countTokensByEmailBetweenDates(
+        Optional<EmailConfirmationToken> latestToken = emailConfirmationTokenRepository.findLatestByEmail(email);
+        EmailConfirmationToken latestTokenModel = null;
+
+        if (latestToken.isPresent()) {
+            latestTokenModel = latestToken.get();
+            if (latestTokenModel.getCreatedAt().plusMinutes(confirmEmailResendDelayMinutes)
+                    .isAfter(LocalDateTime.now())) {
+                throw new InvalidRequestException(
+                        "You must wait a bit before requesting another token.");
+            }
+        }
+
+        int tokenCount = emailConfirmationTokenRepository.countByEmailBetweenDates(
                 LocalDate.now().atTime(LocalTime.MIN),
                 LocalDate.now().atTime(LocalTime.MAX),
                 email
@@ -108,5 +123,11 @@ public class EmailServiceImpl implements EmailService {
                 )
         );
         send(email, confirmationToken.getToken());
+
+        if (latestTokenModel != null) {
+            latestTokenModel.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+            emailConfirmationTokenRepository.save(latestTokenModel);
+        }
+
     }
 }

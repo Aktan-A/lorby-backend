@@ -14,6 +14,9 @@ public interface EmailConfirmationTokenRepository extends JpaRepository<EmailCon
     Optional<EmailConfirmationToken> findByToken(String token);
 
     @Query("SELECT COUNT(ect) FROM EmailConfirmationToken ect WHERE ect.user.email = :email AND ect.createdAt BETWEEN :startDate AND :endDate")
-    int countTokensByEmailBetweenDates(LocalDateTime startDate, LocalDateTime endDate, String email);
+    int countByEmailBetweenDates(LocalDateTime startDate, LocalDateTime endDate, String email);
+
+    @Query("SELECT ect FROM EmailConfirmationToken ect WHERE ect.user.email = :email ORDER BY ect.createdAt DESC LIMIT 1")
+    Optional<EmailConfirmationToken> findLatestByEmail(String email);
 
 }
