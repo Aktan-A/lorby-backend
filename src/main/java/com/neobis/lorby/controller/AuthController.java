@@ -3,7 +3,6 @@ package com.neobis.lorby.controller;
 import com.neobis.lorby.dto.LoginRequestDto;
 import com.neobis.lorby.dto.LoginResponseDto;
 import com.neobis.lorby.dto.RegisterRequestDto;
-import com.neobis.lorby.dto.RegisterResponseDto;
 import com.neobis.lorby.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,14 +22,15 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "Register a new user", description = "Returns an accessToken for the registered user")
+    @Operation(summary = "Register a new user", description = "Registers a new user and sends the confirmation email")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully registered"),
             @ApiResponse(responseCode = "400", description = "User with this username already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDto> register(@RequestBody @Valid RegisterRequestDto registerRequestDto) {
-        return ResponseEntity.ok(authService.register(registerRequestDto));
+    public ResponseEntity<String> register(@RequestBody @Valid RegisterRequestDto registerRequestDto) {
+        authService.register(registerRequestDto);
+        return ResponseEntity.ok("User successfully registered.");
     }
 
     @Operation(summary = "Login as a user", description = "Returns an accessToken for the authenticated user")

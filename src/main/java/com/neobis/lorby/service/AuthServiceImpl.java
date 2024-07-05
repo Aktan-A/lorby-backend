@@ -3,7 +3,6 @@ package com.neobis.lorby.service;
 import com.neobis.lorby.dto.LoginRequestDto;
 import com.neobis.lorby.dto.LoginResponseDto;
 import com.neobis.lorby.dto.RegisterRequestDto;
-import com.neobis.lorby.dto.RegisterResponseDto;
 import com.neobis.lorby.enums.UserRole;
 import com.neobis.lorby.exception.InvalidRequestException;
 import com.neobis.lorby.exception.ResourceExistsException;
@@ -37,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private Integer confirmEmailExpirationMinutes;
 
     @Override
-    public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
+    public void register(RegisterRequestDto registerRequestDto) {
         boolean usernameExists = userRepository.existsByUsername(registerRequestDto.getUsername());
         if (usernameExists) {
             throw new ResourceExistsException(
@@ -63,9 +62,6 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
         emailService.send(registerRequestDto.getEmail(), confirmationToken.getToken());
-
-        String accessToken = jwtService.generateToken(user);
-        return RegisterResponseDto.builder().accessToken(accessToken).build();
     }
 
     @Override
