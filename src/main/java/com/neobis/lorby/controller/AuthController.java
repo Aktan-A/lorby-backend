@@ -1,8 +1,6 @@
 package com.neobis.lorby.controller;
 
-import com.neobis.lorby.dto.LoginRequestDto;
-import com.neobis.lorby.dto.LoginResponseDto;
-import com.neobis.lorby.dto.RegisterRequestDto;
+import com.neobis.lorby.dto.*;
 import com.neobis.lorby.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,6 +39,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid LoginRequestDto loginRequestDto) {
         return ResponseEntity.ok(authService.login(loginRequestDto));
+    }
+
+    @Operation(summary = "Generate a new access token",
+            description = "Accepts a refresh token to generate a new access token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Access token successfully refreshed"),
+            @ApiResponse(responseCode = "401", description = "Refresh token has expired"),
+            @ApiResponse(responseCode = "404", description = "Refresh token was not found")
+    })
+    @PostMapping("/refresh-token")
+    public ResponseEntity<RefreshTokenResponseDto> login(
+            @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
+        return ResponseEntity.ok(authService.refreshAccessToken(refreshTokenRequestDto));
     }
 
 }

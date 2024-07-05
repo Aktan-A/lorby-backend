@@ -60,4 +60,16 @@ public class ControllerExceptionHandler {
         return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiErrorResponse> handleException(InvalidRefreshTokenException e,
+                                                            HttpServletRequest request) {
+        ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
+                request.getRequestURI(),
+                e.getLocalizedMessage(),
+                HttpStatus.UNAUTHORIZED.value(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
 }
