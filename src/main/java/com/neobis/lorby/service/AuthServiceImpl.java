@@ -94,10 +94,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void validateUsername(String username) {
+        if (!username.matches("[a-zA-Z]+")) {
+            throw new InvalidRequestException("Username must only consist of Latin letters.");
+        }
         for (int i = 0; i < username.length(); i++) {
             char value = username.charAt(i);
             if (!Character.isLetter(value)) {
-                throw new InvalidRequestException("Username can only consist of uppercase and lowercase letters.");
+                throw new InvalidRequestException("Username must only consist of uppercase and lowercase letters.");
             }
         }
     }
