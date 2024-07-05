@@ -13,6 +13,7 @@ import com.neobis.lorby.model.User;
 import com.neobis.lorby.repository.UserRepository;
 import com.neobis.lorby.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +32,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+
+    @Value("${application.confirm-email-expiration-minutes}")
+    private Integer confirmEmailExpirationMinutes;
 
     @Override
     public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
@@ -54,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         EmailConfirmationToken confirmationToken = emailService.saveConfirmationToken(
                 new EmailConfirmationToken(
                         token,
-                        LocalDateTime.now().plusMinutes(15),
+                        LocalDateTime.now().plusMinutes(confirmEmailExpirationMinutes),
                         user
                 )
         );
