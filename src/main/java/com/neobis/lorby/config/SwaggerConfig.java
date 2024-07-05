@@ -27,6 +27,7 @@ public class SwaggerConfig {
                                 .scheme(scheme)
                         )
                 )
+                .addServersItem(new Server().url("https://lorby.online"))
                 .info(new Info()
                         .title("Lorby API")
                         .version("1.0"));
