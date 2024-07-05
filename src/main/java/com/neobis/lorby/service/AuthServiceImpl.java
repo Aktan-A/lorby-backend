@@ -1,17 +1,16 @@
 package com.neobis.lorby.service;
 
-import com.neobis.lorby.dto.LoginRequestDto;
-import com.neobis.lorby.dto.LoginResponseDto;
-import com.neobis.lorby.dto.RegisterRequestDto;
-import com.neobis.lorby.dto.RegisterResponseDto;
+import com.neobis.lorby.dto.*;
 import com.neobis.lorby.enums.UserRole;
 import com.neobis.lorby.exception.InvalidRequestException;
 import com.neobis.lorby.exception.ResourceExistsException;
 import com.neobis.lorby.exception.ResourceNotFoundException;
 import com.neobis.lorby.model.EmailConfirmationToken;
+import com.neobis.lorby.model.RefreshToken;
 import com.neobis.lorby.model.User;
 import com.neobis.lorby.repository.UserRepository;
 import com.neobis.lorby.security.JwtService;
+import com.neobis.lorby.security.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,12 +31,13 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
-    @Value("${application.confirm-email-expiration-minutes}")
+    @Value("${application.confirm-email-expire-minutes}")
     private Integer confirmEmailExpirationMinutes;
 
     @Override
-    public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
+    public void register(RegisterRequestDto registerRequestDto) {
         boolean usernameExists = userRepository.existsByUsername(registerRequestDto.getUsername());
         if (usernameExists) {
             throw new ResourceExistsException(
@@ -63,9 +63,6 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
         emailService.send(registerRequestDto.getEmail(), confirmationToken.getToken());
-
-        String accessToken = jwtService.generateToken(user);
-        return RegisterResponseDto.builder().accessToken(accessToken).build();
     }
 
     @Override
@@ -89,7 +86,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String accessToken = jwtService.generateToken(userModel);
-        return LoginResponseDto.builder().accessToken(accessToken).build();
+        String refreshToken = refreshTokenService.createRefreshToken(userModel).getToken();
+        return LoginResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken).build();
     }
 
     @Override
@@ -146,5 +146,13 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidRequestException("Password must contain a special character.");
         }
 
+    }
+
+    @Override
+    public RefreshTokenResponseDto refreshAccessToken(RefreshTokenRequestDto refreshTokenRequestDto) {
+        RefreshToken refreshToken = refreshTokenService.validateRefreshTokenByToken(
+                refreshTokenRequestDto.getToken());
+        String accessToken = jwtService.generateToken(refreshToken.getUser());
+        return RefreshTokenResponseDto.builder().accessToken(accessToken).build();
     }
 }
