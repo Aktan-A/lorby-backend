@@ -18,7 +18,8 @@ public class EmailController {
 
     @Operation(
             summary = "Confirm email",
-            description = "Verifies the users email address using the token which was sent during registration")
+            description = "Verifies the users email address using the token which was sent during registration." +
+                    " Meant to be accessed by the user directly from the email.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Email successfully confirmed"),
             @ApiResponse(responseCode = "400", description = "Email confirmation token has expired"),

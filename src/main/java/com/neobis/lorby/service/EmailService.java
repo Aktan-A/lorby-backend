@@ -6,7 +6,7 @@ public interface EmailService {
 
     EmailConfirmationToken saveConfirmationToken(EmailConfirmationToken emailConfirmationToken);
     void confirmEmailByToken(String token);
-    void send(String to, String token);
+    void sendConfirmationEmail(String to, String token);
     void resendConfirmationEmail(String email, String username);
 
 }

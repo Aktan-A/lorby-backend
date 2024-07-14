@@ -28,6 +28,7 @@ public class SwaggerConfig {
                         )
                 )
                 .addServersItem(new Server().url("https://lorby.online"))
+                .addServersItem(new Server().url("http://localhost:8080"))
                 .info(new Info()
                         .title("Lorby API")
                         .version("1.0"));
