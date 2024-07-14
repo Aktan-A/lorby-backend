@@ -66,7 +66,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void send(String to, String token) {
+    public void sendConfirmationEmail(String to, String token) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Confirm your email");
@@ -122,7 +122,7 @@ public class EmailServiceImpl implements EmailService {
                         userModel
                 )
         );
-        send(email, confirmationToken.getToken());
+        sendConfirmationEmail(email, confirmationToken.getToken());
 
         if (latestTokenModel != null) {
             latestTokenModel.setExpiresAt(LocalDateTime.now().minusMinutes(1));

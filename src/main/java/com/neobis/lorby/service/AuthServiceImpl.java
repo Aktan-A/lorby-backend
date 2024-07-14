@@ -44,9 +44,6 @@ public class AuthServiceImpl implements AuthService {
                     "User with username " + registerRequestDto.getUsername() + " already exists.");
         }
 
-        validateUsername(registerRequestDto.getUsername());
-        validatePassword(registerRequestDto.getPassword());
-
         User user = new User();
         user.setUsername(registerRequestDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequestDto.getPassword()));
@@ -62,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
                         user
                 )
         );
-        emailService.send(registerRequestDto.getEmail(), confirmationToken.getToken());
+        emailService.sendConfirmationEmail(registerRequestDto.getEmail(), confirmationToken.getToken());
     }
 
     @Override
@@ -90,6 +87,12 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken).build();
+    }
+
+    @Override
+    public void validateRegisterDetails(RegisterRequestDto registerRequestDto) {
+        validateUsername(registerRequestDto.getUsername());
+        validatePassword(registerRequestDto.getPassword());
     }
 
     @Override

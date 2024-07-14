@@ -34,6 +34,7 @@ public class AuthController {
     @Operation(summary = "Login as a user", description = "Returns an accessToken for the authenticated user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully logged in"),
+            @ApiResponse(responseCode = "401", description = "Bad credentials"),
             @ApiResponse(responseCode = "404", description = "User with this username was not found")
     })
     @PostMapping("/login")

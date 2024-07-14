@@ -8,6 +8,8 @@ public interface AuthService {
 
     LoginResponseDto login(LoginRequestDto loginRequestDto);
 
+    void validateRegisterDetails(RegisterRequestDto registerRequestDto);
+
     void validateUsername(String username);
 
     void validatePassword(String password);
